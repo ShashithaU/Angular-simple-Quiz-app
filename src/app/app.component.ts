@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal, effect } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { QuizComponent } from './quiz/quiz/quiz.component';
 
@@ -11,4 +11,6 @@ imports: [RouterOutlet,QuizComponent],
 })
 export class AppComponent {
   title = 'angular-quiz';
+
+  
 }
