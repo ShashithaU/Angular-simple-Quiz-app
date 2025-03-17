@@ -1,9 +1,15 @@
 <div>
-  <div class="question">{{questionService.currentQuestion().question}}</div>
+  <div class="question">{{quizService.currentQuestion().question}}</div>
   <div class="answers">
-<app-answer/>
-<app-answer/>
-<app-answer/>
-<app-answer/>
+
+
+@for (answer of quizService.currentQuestionAnswers(); track $index) {
+  <app-answer [answerText]="answer" [answerIndex]="$index"/>
+}
+
+
+
+
+
   </div>
 </div>

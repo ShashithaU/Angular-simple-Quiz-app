@@ -1,4 +1,5 @@
-<div class="answer">
-  <div class="answer-letter">A</div>
-  <div class="answer-text">This is an answer</div>
+<div class="answer" (click)="quizeService.selectAnswer(answerText())" 
+[ngClass]="{'answer': true, 'correct-answer': isCorrectAnswer(), 'wrong-answer': isWrongAnswer(), 'disabled-answer': !!this.quizeService.currentAnswer()}" > 
+  <div class="answer-letter">{{letterMappingArray[answerIndex()]}}</div>
+  <div class="answer-text">{{answerText()}}</div>
 </div>

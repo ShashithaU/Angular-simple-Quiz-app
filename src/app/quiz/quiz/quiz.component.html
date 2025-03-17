@@ -4,7 +4,7 @@
         <div class="congratulations">Congratulations!</div>
         <div class="results-info">
         <div>You have completed the quiz.</div>
-        <div>You've got 999 of {{quizeService.questions().length}} right.</div>
+        <div>You've got {{quizeService.correctAnswerCount()}} of {{quizeService.questions().length}} right.</div>
         </div>
         <div class="next-button" (click)="quizeService.restart()">Restart</div>
     </div>
@@ -17,11 +17,11 @@
                 Question {{quizeService.currentQuestionIndex()+1}}/{{quizeService.questions().length}} s
             </div>
             <app-question/>
-                <div class="next-button" (click) = "quizeService.nextquestion()">NEXT QUESTION</div>   
+            @if (quizeService.currentAnswer()) {<div class="next-button" (click) = "quizeService.nextquestion()">NEXT QUESTION</div>   }
+                
         </div>
     </div>
 }
-
 
 
 

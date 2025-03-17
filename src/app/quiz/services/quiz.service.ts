@@ -1,24 +1,54 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { QuestionInterface } from '../quiz/types/question.interface';
 
-
 @Injectable({ providedIn: 'root' })
 export default class QuizService {
-
   questions = signal<QuestionInterface[]>(this.getMockQuestions());
   currentQuestionIndex = signal<number>(0);
-  currentQuestion:any = computed(() => this.questions()[this.currentQuestionIndex()]);
+  currentQuestion: any = computed(
+    () => this.questions()[this.currentQuestionIndex()]
+  );
+ correctAnswerCount = signal<number>(0);
+  showResults = computed(
+    () => this.currentQuestionIndex() === this.questions().length - 1
+  );
 
-  showResults = computed(() => this.currentQuestionIndex() ===this.questions().length-1);
-
-  nextquestion(){
-    const currentIndex = this.showResults()? this.currentQuestionIndex() : this.currentQuestionIndex()+1;
+  currentQuestionAnswers = computed(() => 
+    this.suffleAnswers(this.currentQuestion())
+  );
+    
+  nextquestion() {
+    const currentIndex = this.showResults()
+      ? this.currentQuestionIndex()
+      : this.currentQuestionIndex() + 1;
     this.currentQuestionIndex.set(currentIndex);
+    this.currentAnswer.set(null);  
   }
 
-  restart(){
+  selectAnswer(answerText :any){
+    this.currentAnswer.set(answerText);
+    if (answerText === this.currentQuestion().correctAnswer) {
+      this.correctAnswerCount.set(this.correctAnswerCount() + 1);
+    }
+  }
+
+  restart() {
     this.currentQuestionIndex.set(0);
   }
+
+  suffleAnswers(question: QuestionInterface): string[] {
+    const unshuffledAnswers = [
+      question.correctAnswer,
+      ...question.incorrectAnswers,
+    ];
+    return unshuffledAnswers
+      .map((a) => ({ sort: Math.random(), value: a }))
+      .sort((a, b) => a.sort - b.sort)
+      .map((a) => a.value);
+  }
+
+  currentAnswer = signal<string | null>(null);
+
 
   getMockQuestions(): QuestionInterface[] {
     return [
