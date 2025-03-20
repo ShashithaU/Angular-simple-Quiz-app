@@ -1,23 +1,31 @@
+@if(quizeService.error()) {
+    <div class="results">
+        <div class="congratulations">Server Er ror!</div>
+        <div class="results-info">
+        <div>{{quizeService.error}}</div>
+        </div>
+    </div>
+} 
 @if(quizeService.showResults()){
 
     <div class="results">
         <div class="congratulations">Congratulations!</div>
         <div class="results-info">
         <div>You have completed the quiz.</div>
-        <div>You've got {{quizeService.correctAnswerCount()}} of {{quizeService.questions().length}} right.</div>
+        <div>You've got {{quizeService.correctAnswersCount()}} of {{quizeService.questions().length}} right.</div>
         </div>
         <div class="next-button" (click)="quizeService.restart()">Restart</div>
     </div>
 }
 
-@if(!quizeService.showResults()){
+@if(!quizeService.showResults() && quizeService.questions().length>0){
     <div class="quiz">
         <div>
             <div class="score">
                 Question {{quizeService.currentQuestionIndex()+1}}/{{quizeService.questions().length}} s
             </div>
             <app-question/>
-            @if (quizeService.currentAnswer()) {<div class="next-button" (click) = "quizeService.nextquestion()">NEXT QUESTION</div>   }
+            @if (quizeService.currentAnswer()) {<div class="next-button" (click) = "quizeService.goToNextQuestion()">NEXT QUESTION</div>   }
                 
         </div>
     </div>

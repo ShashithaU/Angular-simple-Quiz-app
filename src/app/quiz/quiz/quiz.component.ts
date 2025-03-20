@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { QuestionComponent } from "../../question/question/question.component";
-import QuizService from '../services/quiz.service';
+import { QuizService } from '../services/quiz.service';
+
 
 
 @Component({
@@ -10,8 +11,20 @@ import QuizService from '../services/quiz.service';
   templateUrl: './quiz.component.html',
   styleUrl: './quiz.component.css'
 })
-export class QuizComponent {
-quizeService = inject(QuizService);
+export class QuizComponent implements OnInit{
+  quizeService = inject(QuizService); 
+ngOnInit(): void {
+  this.quizeService.getQuestions().subscribe({
+    next : (questions) => {
+      this.quizeService.questions.set(questions);
+  },
+  error : (err) => {
+    console.log('er',err.message);
+    this.quizeService.error.set(err.message);
+  }
+
+})
 
 
+}
 }

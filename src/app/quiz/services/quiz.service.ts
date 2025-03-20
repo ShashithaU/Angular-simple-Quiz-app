@@ -1,54 +1,86 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+
+import { Observable, map } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BackendQuestionInterface } from '../quiz/types/backendQuestion.interface';
 import { QuestionInterface } from '../quiz/types/question.interface';
 
+
 @Injectable({ providedIn: 'root' })
-export default class QuizService {
-  questions = signal<QuestionInterface[]>(this.getMockQuestions());
+export class QuizService {
+  http = inject(HttpClient);
+  questions = signal<QuestionInterface[]>([]);
   currentQuestionIndex = signal<number>(0);
-  currentQuestion: any = computed(
-    () => this.questions()[this.currentQuestionIndex()]
+  currentAnswer = signal<string | null>(null);
+  correctAnswersCount = signal<number>(0);
+  error = signal<string | null>(null);
+  currentQuestion = computed(
+    () => this.questions()[this.currentQuestionIndex()],
   );
- correctAnswerCount = signal<number>(0);
   showResults = computed(
-    () => this.currentQuestionIndex() === this.questions().length - 1
+    () => this.currentQuestionIndex() === this.questions().length - 1,
+  );
+  currentQuestionAnswers = computed(() =>
+    this.shuffleAnswers(this.currentQuestion()),
   );
 
-  currentQuestionAnswers = computed(() => 
-    this.suffleAnswers(this.currentQuestion())
-  );
-    
-  nextquestion() {
-    const currentIndex = this.showResults()
-      ? this.currentQuestionIndex()
-      : this.currentQuestionIndex() + 1;
-    this.currentQuestionIndex.set(currentIndex);
-    this.currentAnswer.set(null);  
-  }
-
-  selectAnswer(answerText :any){
-    this.currentAnswer.set(answerText);
-    if (answerText === this.currentQuestion().correctAnswer) {
-      this.correctAnswerCount.set(this.correctAnswerCount() + 1);
-    }
-  }
-
-  restart() {
-    this.currentQuestionIndex.set(0);
-  }
-
-  suffleAnswers(question: QuestionInterface): string[] {
+  shuffleAnswers(question: QuestionInterface): string[] {
     const unshuffledAnswers = [
       question.correctAnswer,
       ...question.incorrectAnswers,
     ];
+
     return unshuffledAnswers
       .map((a) => ({ sort: Math.random(), value: a }))
       .sort((a, b) => a.sort - b.sort)
       .map((a) => a.value);
   }
 
-  currentAnswer = signal<string | null>(null);
+  selectAnswer(answerText: string): void {
+    this.currentAnswer.set(answerText);
+    const correctAnswersCount =
+      answerText === this.currentQuestion().correctAnswer
+        ? this.correctAnswersCount() + 1
+        : this.correctAnswersCount();
+    this.correctAnswersCount.set(correctAnswersCount);
+  }
 
+  goToNextQuestion(): void {
+    const currentQuestionIndex = this.showResults()
+      ? this.currentQuestionIndex()
+      : this.currentQuestionIndex() + 1;
+    this.currentQuestionIndex.set(currentQuestionIndex);
+    this.currentAnswer.set(null);
+  }
+
+  restart(): void {
+    this.currentQuestionIndex.set(0);
+  }
+
+  getQuestions(): Observable<QuestionInterface[]> {
+    const apiUrl =
+      'https://opentdb.com/api.php?amount=10&category=31&difficulty=easy&type=multiple&encode=url3986';
+    return this.http.get<{ results: BackendQuestionInterface[] }>(apiUrl).pipe(
+      map((response) => {
+        return this.normalizeQuestions(response.results);
+      }),
+    );
+  }
+
+  normalizeQuestions(
+    backendQuestions: BackendQuestionInterface[],
+  ): QuestionInterface[] {
+    return backendQuestions.map((backendQuestion) => {
+      const incorrectAnswers = backendQuestion.incorrect_answers.map(
+        (incorrectAnswer) => decodeURIComponent(incorrectAnswer),
+      );
+      return {
+        question: decodeURIComponent(backendQuestion.question),
+        correctAnswer: decodeURIComponent(backendQuestion.correct_answer),
+        incorrectAnswers,
+      };
+    });
+  }
 
   getMockQuestions(): QuestionInterface[] {
     return [
